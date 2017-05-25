@@ -6,7 +6,7 @@
         private $password;
         private $db;
         private $mysqli;
-
+		
         function __construct($host,$user,$pass,$db) {
             $this->host     = $host;
             $this->user     = $user;
@@ -26,13 +26,16 @@
               return false;
             $select = $this->arrayToString($select, $separator=', ',$return='values');
             $this->sql = "SELECT {$select} FROM {$table}";
-            if(isset($where)){
-              $where = $this->arrayToString($where, $separator=' AND ');
-              $this->sql .= " WHERE {$where}";
-            }
-            else if(isset($or_where)){
-              $where = $this->arrayToString($or_where, $separator=' OR ');
-              $this->sql .= " WHERE {$where}";
+			if($where and $or_where){
+				$where = $this->arrayToString($where, $separator=' AND ');
+				$or_where = $this->arrayToString($or_where, $separator=' OR ');
+				$this->sql .= " WHERE ({$where}) AND ({$or_where})";
+			}elseif($where and !$or_where){
+				$where = $this->arrayToString($where, $separator=' AND ');
+				$this->sql .= " WHERE {$where}";
+            }elseif($or_where and !$where){
+				$where = $this->arrayToString($or_where, $separator=' OR ');
+				$this->sql .= " WHERE {$where}";
             }
             if(isset($orderby)){
               $this->sql .=" ORDER BY {$orderby}";
@@ -41,6 +44,7 @@
             if(isset($offset)){
               $this->sql .=" OFFSET $offset";
             }
+			//print($this->sql."<br />");
             return $this->query($this->sql);
         }
 
@@ -88,6 +92,7 @@
             $this->sql .= " WHERE {$where}";
           }
           $this->sql .=" LIMIT $limit";
+		  //print($this->sql);
           $this->query($this->sql);
           return $this->affectedRows();
         }
@@ -145,7 +150,7 @@
           }
           return $data;
         }
-
+		
         public function convert_to_str ($v='', $k='', $return='', $input='') {
             if(isset($input)){
               $v = $this->cleanInput($v);
@@ -187,3 +192,4 @@
         }
     }
  }
+ ?>
